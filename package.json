@@ -1,0 +1,22 @@
+{
+  "name": "casinocord",
+  "version": "1.0.0",
+  "description": "CasinoCord is a discord bot to turn your guild members into maniacs",
+  "main": "bin/app.js",
+  "scripts": {
+    "start": "node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TomSputz/CasinoCord.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TomSputz/CasinoCord/issues"
+  },
+  "homepage": "https://github.com/TomSputz/CasinoCord#readme",
+  "dependencies": {
+    "discord.js": "^11.3.2"
+  }
+}

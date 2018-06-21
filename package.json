@@ -18,5 +18,8 @@
   "homepage": "https://github.com/TomSputz/CasinoCord#readme",
   "dependencies": {
     "discord.js": "^11.3.2"
+  },
+  "devDependencies": {
+    "eslint-config-google": "^0.9.1"
   }
 }

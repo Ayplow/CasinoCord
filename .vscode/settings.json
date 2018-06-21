@@ -1,3 +1,5 @@
 {
-    "debug.toolBarLocation": "docked"
+    "debug.toolBarLocation": "docked",
+    "todo-tree.flat": false,
+    "todo-tree.expanded": false
 }

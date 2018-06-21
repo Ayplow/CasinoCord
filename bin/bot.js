@@ -5,14 +5,23 @@ bot.cfg = require('../data/botconfig');
 bot.data = require('../data/botdata');
 bot.commands = require('./extensions/commands');
 bot.games = require('./extensions/games');
-bot.temp = {};
+bot.temp = {
+    'guilds': {},
+    'channels': {},
+};
 
 bot.on('messageReactionAdd', async function(messageReaction, user) {
-    if (user !== bot.user) {
+    if (user.bot == false) {
+        if (bot.temp.channels[messageReaction.message.channel.id].blackjack.controlMessage == messageReaction.message) {
+            bot.games.blackjackReact.apply(bot, [messageReaction, user]);
+        }
     }
 });
 bot.on('messageReactionRemove', async function(messageReaction, user) {
-    if (user !== bot.user) {
+    if (user.bot == false) {
+        if (bot.temp.channels[messageReaction.message.channel.id].blackjack.controlMessage == messageReaction.message) {
+            bot.games.blackjackReact.apply(bot, [messageReaction, user]);
+        }
     }
 });
 bot.on('ready', async () => {
@@ -25,14 +34,9 @@ bot.on('message', async function(message) {
         let cmd = cmdArray[0].slice(1);
         switch (cmd) {
             case 'blackjack':
-                let b = new bot.games.BlackJack([message.author.id]);
-                console.log(b);
+                bot.games.blackjack.apply(bot, [message]);
+                console.log();
                 break;
-            case 'draw':
-                bot.commands.draw(message);
-                break;
-            case 'addcontrol':
-                controlMessage = createControlBox(message.channel.id, cmdArray[1], ['🔄', '⏹']);
         }
     }
     console.log(message.author.username + ': ' + message.content);

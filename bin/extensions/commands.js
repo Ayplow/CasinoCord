@@ -15,6 +15,7 @@ function draw(message) {
     }
 
     message.channel.send(v);
+    return deck;
 }
 async function createControlBox(channelid, message, reactList) {
     controlMessage = await bot.channels.get(channelid).send(message);
@@ -23,11 +24,11 @@ async function createControlBox(channelid, message, reactList) {
     }
     return controlMessage;
 }
-async function addReactions(message, emojis) {
-    for (i = 0; i < emojis.length; i++) {
-        await message.react(emojis[i]);
+async function multiReact(message, emojiArray) {
+    for (i = 0; i < emojiArray.length; i++) {
+        await message.react(emojiArray[i]);
     }
 }
 exports.draw = draw;
 exports.createControlBox = createControlBox;
-exports.addReactions = addReactions;
+exports.multiReact = multiReact;

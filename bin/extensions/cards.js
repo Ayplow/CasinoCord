@@ -13,6 +13,14 @@ function BuildDeck(ranks, suits, shuffled, jokers) {
         }
         return v;
     };
+    this.cardadd = function(v) {
+        n = 0;
+        while (n < v.length) {
+            this.cards.unshift(v[n]);
+            n++;
+        }
+        return n;
+    };
     this.shuffle = function() {
         let i = this.cards.length;
         while (i > 0) {

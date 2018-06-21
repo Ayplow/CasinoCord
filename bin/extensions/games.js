@@ -1,23 +1,34 @@
 const cards = require('./cards');
+const {
+    multiReact,
+} = require('./commands');
+const Discord = require('discord.js');
 
-function BlackJack(playerIds, deck, ranknames) {
+function BlackJack(playerIds, deck) {
     this.deck = (deck == null ? new cards.BuildDeck() : deck);
-    this.ranknames = (ranknames == null ? ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'] : ranknames);
     this.dealer = {};
     this.players = {};
-    this.value = function(n) {
-        // TODO: Make a function to evalute a full hand's score (likely remove acecheck in the meantime) and return total, maybe return true if is blackjack?
-        if (this.deck.ranks[p - 1] === 'Jack' || ranks[p - 1] === 'King' || ranks[p - 1] == 'Queen') {
-            v = 10;
-        } else {
-            v = p;
+    this.value = function (hand) {
+        // TODO: Finds value of 'hand' object passed, and returns total.
+        // Hand object has format [{card1},{card2}] where card is {"Rank":"value","Suit":"value"}
+        total = 0;
+        for (i = 0; i < hand.length; i++) {
+            facecardCheck = (hand[i]['Rank'] == 'King' || hand[i]['Rank'] == 'Queen' || hand[i]['Rank'] == 'Jack' ? total += 10 : parseInt(hand[i]['Rank'], 10));
         }
-        return v;
+        for (i = 0; i < hand.length; i++) {
+            if (hand[i]['Rank'] == 'Ace') {
+                if ((total + 11) < 21) {
+                    total += 11;
+                } else {
+                    total += 1;
+                }
+            }
+        }
     };
-    this.winner = function() {
-        // Evaluates all hands to find winner of game, then return winner ID, else return false
+    this.winner = function () {
+        // TODO: Evaluates all hands to find winner of game, then return winner ID, else return false
     };
-    this.acecheck = function(card1, card2) {
+    this.acecheck = function (card1, card2) {
         if (card1 === 'Ace') {
             v1 = 11;
         }
@@ -30,12 +41,58 @@ function BlackJack(playerIds, deck, ranknames) {
         }
         return [v1, v2];
     };
-    for (i = 0; i < playerIds.length; i++) {
-        this.players[playerIds[i]] = [];
-        this.players[playerIds[i]].push(this.deck.carddraw(2));
+    let i = 0;
+    while (i < playerIds.length) {
+        if (playerIds[i].bot) {
+            playerIds.splice(i, 1);
+        } else {
+            this.players[playerIds[i]] = [];
+            this.players[playerIds[i]] = this.players[playerIds[i]].concat(this.deck.carddraw(2));
+            i = i + 1;
+        }
     }
 }
+async function blackjack(message) {
+    let channel = (this.temp.channels[message.channel.id] == undefined ? this.temp.channels[message.channel.id] = {} : this.temp.channels[message.channel.id]);
+    if (channel.blackjack == null) {
+        // Setup Code
+        channel.blackjack = {};
+        channel.blackjack.controlEmbed = new Discord.RichEmbed({
+            'description': 'Once everyone has joined, just hit ✅!',
+        });
+        channel.blackjack.controlMessage = await message.channel.send(channel.blackjack.controlEmbed);
+        multiReact(channel.blackjack.controlMessage, ['🙋', '✅']);
+        // channel.blackjack.game = new BlackJack([message.author.id]);
+    } else {
+        return 'Already defined';
+    }
+}
+async function blackjackReact(messageReaction, user) {
+    let channel = (this.temp.channels[messageReaction.message.channel.id] == undefined ? this.temp.channels[messageReaction.message.channel.id] = {} : this.temp.channels[messageReaction.message.channel.id]);
+    if (channel.blackjack != null) {
+        if (channel.blackjack.game == null) {
+            if (messageReaction.emoji == '✅') {
+                channel.blackjack.game = new BlackJack(channel.blackjack.controlMessage.reactions.get('🙋').users.array());
+                let s = '';
+                for (j in channel.blackjack.game.players) {
+                    s = s + j + ': ';
+                    for (k in channel.blackjack.game.players[j]) {
+                        s = s + 'A ' + channel.blackjack.game.players[j][k]['Rank'] + ' of ' + channel.blackjack.game.players[j][k]['Suit'] + ',\n';
+                    }
+                    //                    v = v + ' and a ' + n[n.length - 1]['Rank'] + ' of ' + n[n.length - 1]['Suit'];
+                }
+                channel.blackjack.controlEmbed['description'] = 'Players:\n' + s;
+                channel.blackjack.controlMessage.edit(channel.blackjack.controlEmbed);
+            }
+        } else {}
+    } else {
+        return 'Blackjack game not built for this channel';
+    }
+}
+exports.cards = cards;
 exports.BlackJack = BlackJack;
+exports.blackjack = blackjack;
+exports.blackjackReact = blackjackReact;
 /*
 async def blackjack(ctx):
     global blackjack_started

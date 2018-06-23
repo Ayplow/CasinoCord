@@ -72,16 +72,18 @@ async function blackjackReact(messageReaction, user) {
     if (channel.blackjack != null) {
         if (channel.blackjack.game == null) {
             if (messageReaction.emoji == '✅') {
-                channel.blackjack.game = new BlackJack(channel.blackjack.controlMessage.reactions.get('🙋').users.array());
-                let s = '';
-                for (j in channel.blackjack.game.players) {
-                    s = s + j + ': ';
-                    for (k in channel.blackjack.game.players[j]) {
-                        s = s + 'A ' + channel.blackjack.game.players[j][k]['Rank'] + ' of ' + channel.blackjack.game.players[j][k]['Suit'] + ',\n';
-                    }
-                    //                    v = v + ' and a ' + n[n.length - 1]['Rank'] + ' of ' + n[n.length - 1]['Suit'];
+                playerIds = []
+                for (i in channel.blackjack.controlMessage.reactions.get('🙋').users) {
+                    playerIds.push(i.key);
                 }
-                channel.blackjack.controlEmbed['description'] = 'Players:\n' + s;
+                channel.blackjack.game = new BlackJack(playerIds);
+                for (i in channel.blackjack.game.players) {
+                    let s = '';
+                    for (j in channel.blackjack.game.players[i]) {
+                        s = s + 'A ' + channel.blackjack.game.players[i][j]['Rank'] + ' of ' + channel.blackjack.game.players[i][j]['Suit'] + ',\n';
+                    }
+                    channel.blackjack.controlEmbed.addField(this.users[i].username, s, true);
+                }
                 channel.blackjack.controlMessage.edit(channel.blackjack.controlEmbed);
             }
         } else {}

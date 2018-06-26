@@ -12,14 +12,14 @@ bot.temp = {
 
 bot.on('messageReactionAdd', async function(messageReaction, user) {
     if (user.bot == false) {
-        if (bot.temp.channels[messageReaction.message.channel.id].blackjack.controlMessage == messageReaction.message) {
+        if (bot.temp.channels[messageReaction.message.channel.id].blackjack && bot.temp.channels[messageReaction.message.channel.id].blackjack.controlMessage.id == messageReaction.message.id) {
             bot.games.blackjackReact.apply(bot, [messageReaction, user]);
         }
     }
 });
 bot.on('messageReactionRemove', async function(messageReaction, user) {
     if (user.bot == false) {
-        if (bot.temp.channels[messageReaction.message.channel.id].blackjack.controlMessage == messageReaction.message) {
+        if (bot.temp.channels[messageReaction.message.channel.id].blackjack && bot.temp.channels[messageReaction.message.channel.id].blackjack.controlMessage.id == messageReaction.message.id) {
             bot.games.blackjackReact.apply(bot, [messageReaction, user]);
         }
     }
@@ -34,7 +34,7 @@ bot.on('message', async function(message) {
         let cmd = cmdArray[0].slice(1);
         switch (cmd) {
             case 'blackjack':
-                bot.games.blackjack.apply(bot, [message]);
+                bot.games.blackjackCmd.apply(bot, [message]);
                 console.log();
                 break;
         }

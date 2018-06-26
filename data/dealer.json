@@ -1,0 +1,22 @@
+{
+    "lines":{
+        "positive":{
+            "win":["Ahw, better luck next time!"],
+            "draw":[""],
+            "loss":["Well played, here's your winnings!"],
+            "banter":[""]
+        },
+        "neutral":{
+            "win":["I'm getting lucky today..."],
+            "draw":[""],
+            "loss":["You're better than I thought, you earned this."],
+            "banter":[""]
+        },
+        "negative":{
+            "win":[""],
+            "draw":[""],
+            "loss":["You must be card counting... Youre not keeping this!"],
+            "banter":["Do you want me to take more of your money?"]
+        }            
+    }
+}

@@ -1,102 +1,147 @@
 const cards = require('./cards');
 const {
-    multiReact,
+    addReacts,
+    delReacts,
+    newCtrlMessage,
+    editCtrlMessage,
 } = require('./commands');
 const Discord = require('discord.js');
+const dealer = require('../../data/dealer.json');
 
 function BlackJack(playerIds, deck) {
     this.deck = (deck == null ? new cards.BuildDeck() : deck);
-    this.dealer = {};
-    this.players = {};
-    this.value = function (hand) {
+    this.hit = function(player) {
+        this.players[player].push(this.deck.carddraw(1)[0]);
+    };
+    this.stick = function(player) {
+
+    };
+    this.value = function(player) {
         // TODO: Finds value of 'hand' object passed, and returns total.
         // Hand object has format [{card1},{card2}] where card is {"Rank":"value","Suit":"value"}
-        total = 0;
-        for (i = 0; i < hand.length; i++) {
-            facecardCheck = (hand[i]['Rank'] == 'King' || hand[i]['Rank'] == 'Queen' || hand[i]['Rank'] == 'Jack' ? total += 10 : parseInt(hand[i]['Rank'], 10));
-        }
-        for (i = 0; i < hand.length; i++) {
-            if (hand[i]['Rank'] == 'Ace') {
-                if ((total + 11) < 21) {
-                    total += 11;
-                } else {
-                    total += 1;
-                }
+        hand = this.players[player];
+        let total = 0;
+        for (let i of hand) {
+            if (i['Rank'] == 'Ace') {
+                total = ((total + 11) < 21 ? total += 11 : total += 1);
+            } else {
+                ['King', 'Queen', 'Jack'].includes(i['Rank']) ? total += 10 : total += parseInt(i['Rank'], 10);
             }
         }
+        return total;
     };
-    this.winner = function () {
+    this.stringify = function(player) {
+        let str = '';
+        for (let j of this.players[player]) {
+            str += 'A ' + j['Rank'] + ' of ' + j['Suit'] + ',\n';
+        }
+        return str;
+    };
+    this.winner = function() {
         // TODO: Evaluates all hands to find winner of game, then return winner ID, else return false
-    };
-    this.acecheck = function (card1, card2) {
-        if (card1 === 'Ace') {
-            v1 = 11;
+        let bestPlayer = '';
+        let bestScore = 0;
+        let dealerScore = this.value(this.dealer);
+        for (let i of Object.keys(this.players)) {
+            e = this.value(this.players[i]);
+            if (e > bestScore) {
+                bestPlayer = i;
+                bestScore = e;
+            }
         }
-        if (card2 === 'Ace') {
-            v2 = 11;
-        }
-        if (card1 === 'Ace' && card2 === 'Ace') {
-            v1 = 11;
-            v2 = 1;
-        }
-        return [v1, v2];
-    };
-    let i = 0;
-    while (i < playerIds.length) {
-        if (playerIds[i].bot) {
-            playerIds.splice(i, 1);
+        if (bestScore > dealerScore) {
+            return bestPlayer;
         } else {
-            this.players[playerIds[i]] = [];
-            this.players[playerIds[i]] = this.players[playerIds[i]].concat(this.deck.carddraw(2));
-            i = i + 1;
+            return false;
         }
+    };
+    this.dealer = [];
+    this.players = {};
+    for (let i of playerIds) {
+        this.players[i] = [];
+    }
+    for (let i = 0; i < 2; i++) {
+        for (let j of playerIds) {
+            this.players[j].push(this.deck.carddraw(1)[0]);
+        }
+        this.dealer.push(this.deck.carddraw(1)[0]);
     }
 }
-async function blackjack(message) {
-    let channel = (this.temp.channels[message.channel.id] == undefined ? this.temp.channels[message.channel.id] = {} : this.temp.channels[message.channel.id]);
-    if (channel.blackjack == null) {
+async function blackjackCmd(message) {
+    let channel = (!(message.channel.id in this.temp.channels) ? this.temp.channels[message.channel.id] = message.channel : this.temp.channels[message.channel.id]);
+    if (!('blackjack' in channel)) {
         // Setup Code
         channel.blackjack = {};
-        channel.blackjack.controlEmbed = new Discord.RichEmbed({
-            'description': 'Once everyone has joined, just hit ✅!',
-        });
-        channel.blackjack.controlMessage = await message.channel.send(channel.blackjack.controlEmbed);
-        multiReact(channel.blackjack.controlMessage, ['🙋', '✅']);
+        channel.blackjack.controlMessage = await newCtrlMessage(message.channel, 'Once everyone has joined, just hit ✅!', {}, ['🙋', '✅', '❌']);
         // channel.blackjack.game = new BlackJack([message.author.id]);
     } else {
         return 'Already defined';
     }
 }
 async function blackjackReact(messageReaction, user) {
-    let channel = (this.temp.channels[messageReaction.message.channel.id] == undefined ? this.temp.channels[messageReaction.message.channel.id] = {} : this.temp.channels[messageReaction.message.channel.id]);
-    if (channel.blackjack != null) {
-        if (channel.blackjack.game == null) {
-            if (messageReaction.emoji == '✅') {
-                playerIds = []
-                for (i in channel.blackjack.controlMessage.reactions.get('🙋').users) {
-                    playerIds.push(i.key);
+    let channel = (!(messageReaction.message.channel.id in this.temp.channels) ? this.temp.channels[messageReaction.message.channel.id] = messageReaction.message.channel : this.temp.channels[messageReaction.message.channel.id]);
+    if ('blackjack' in channel) {
+        switch (messageReaction.emoji.name) {
+            case '✅':
+                await blackjackSetup.apply(this);
+                break;
+            case '❌':
+                blackjackDestroy.apply(this, [user.username]);
+                break;
+            case '🔃':
+                channel.blackjack.game.hit(user.id);
+                fields = {};
+                for (let i in channel.blackjack.game.players) {
+                    fields[this.users.get(i).username] = channel.blackjack.game.stringify(i);
                 }
-                channel.blackjack.game = new BlackJack(playerIds);
-                for (i in channel.blackjack.game.players) {
-                    let s = '';
-                    for (j in channel.blackjack.game.players[i]) {
-                        s = s + 'A ' + channel.blackjack.game.players[i][j]['Rank'] + ' of ' + channel.blackjack.game.players[i][j]['Suit'] + ',\n';
-                    }
-                    channel.blackjack.controlEmbed.addField(this.users[i].username, s, true);
-                }
-                channel.blackjack.controlMessage.edit(channel.blackjack.controlEmbed);
-            }
-        } else {}
+                editCtrlMessage(channel.blackjack.controlMessage, user.username + ' hit!', fields);
+                break;
+            case '⏹':
+                channel.blackjack.game.stick(user.id);
+                break;
+        }
     } else {
         return 'Blackjack game not built for this channel';
     }
-}
+
+    function blackjackDestroy(user) {
+        if ('game' in channel.blackjack) {
+            editCtrlMessage(channel.blackjack.controlMessage, 'Game over', {
+                'Ended by:': user,
+            });
+        } else {
+            channel.blackjack.controlMessage.delete();
+        }
+        delete channel['blackjack'];
+    }
+    async function blackjackSetup() {
+        if (!('game' in channel.blackjack)) {
+            playerIds = [];
+            for (let [i, j] of await channel.blackjack.controlMessage.reactions.get('🙋').fetchUsers()) {
+                if (!(j.bot)) {
+                    playerIds.push(i);
+                }
+            }
+            if (playerIds.length > 0) {
+                channel.blackjack.game = new BlackJack(playerIds);
+                fields = {};
+                for (let i in channel.blackjack.game.players) {
+                    fields[this.users.get(i).username] = channel.blackjack.game.stringify(i);
+                }
+                channel.blackjack.controlMessage = await newCtrlMessage(channel.blackjack.controlMessage, 'Game started', fields, ['🔃', '⏹', '❌']);
+            }
+        }
+    }
+};
+
+
 exports.cards = cards;
 exports.BlackJack = BlackJack;
-exports.blackjack = blackjack;
+exports.blackjackCmd = blackjackCmd;
 exports.blackjackReact = blackjackReact;
+
 /*
-async def blackjack(ctx):
+    async def blackjack(ctx):
     global blackjack_started
     blackjack_started = True
     global player_cards,dealer_cards
@@ -136,5 +181,4 @@ async def blackjack(ctx):
     for i in range(0,len(player_cards)):
         print_cards[i] = player_cards[i]
 
-    await bot.say(" Dealers card - %s \n Your cards - %s & %s \n Your card value - %s" % (dealer_card_one,player_cards[0],player_cards[1],total))
-*/
+    await bot.say(" Dealers card - %s \n Your cards - %s & %s \n Your card value - %s" % (dealer_card_one,player_cards[0],player_cards[1],total)) #*/

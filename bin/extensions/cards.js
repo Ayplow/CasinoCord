@@ -14,7 +14,7 @@ function BuildDeck(ranks, suits, shuffled, jokers) {
         return v;
     };
     this.cardadd = function(v) {
-        n = 0;
+        let n = 0;
         while (n < v.length) {
             this.cards.unshift(v[n]);
             n++;
@@ -31,8 +31,8 @@ function BuildDeck(ranks, suits, shuffled, jokers) {
             this.cards[index] = temp;
         }
     };
-    for (n = 0; n < this.suits.length; n++) {
-        for (m = 0; m < this.ranks.length; m++) {
+    for (let n = 0; n < this.suits.length; n++) {
+        for (let m = 0; m < this.ranks.length; m++) {
             this.cards.push({
                 'Rank': this.ranks[m],
                 'Suit': this.suits[n],
